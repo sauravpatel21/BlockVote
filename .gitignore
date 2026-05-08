@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment Variables (CRITICAL to ignore!)
+.env
+.env.*
+!.env.template
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Hardhat outputs
+artifacts/
+cache/
+typechain-types/
+
+# OS/Editor files
+.DS_Store
+.vscode/
+*.log
