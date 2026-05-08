@@ -1,7 +1,10 @@
-require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config({ path: "./backend/.env" }); // or create .env at root
+import "@nomicfoundation/hardhat-toolbox";
+import * as dotenv from "dotenv";
 
-module.exports = {
+dotenv.config({ path: "./backend/.env" }); 
+dotenv.config({ path: "./.env" });
+
+export default {
   solidity: "0.8.20",
   networks: {
     polygonAmoy: {
