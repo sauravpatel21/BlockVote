@@ -63,9 +63,12 @@ You need to deploy the smart contract to Polygon Amoy to get your `VITE_VOTING_C
 2. In Render, create a new **Web Service**.
 3. Connect your GitHub repository and select the `backend` folder as the Root Directory.
 4. Build Command: `npm install`
-5. Start Command: `node server.js`
+5. Start Command: `npm start`
 6. In the Environment section, connect it to your Doppler backend config (Render has a native Doppler integration, or you can paste the variables manually).
 7. Deploy! Copy the Render URL (e.g., `https://blockvote-backend.onrender.com/api`) and put it in Doppler as the frontend's `VITE_API_URL`.
+
+> [!NOTE]
+> **MongoDB Local Troubleshooting:** If you receive a "Server selection timed out" error when running locally, it means your local Wi-Fi/ISP is blocking port 27017. Deploying to Render instantly bypasses this issue.
 
 ### Step 4: Deploy Frontend to Vercel
 1. In Vercel, click "Add New Project" and select your GitHub repo.
