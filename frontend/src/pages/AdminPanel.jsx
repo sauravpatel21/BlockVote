@@ -33,8 +33,13 @@ function AdminPanel() {
           <button className="btn danger" onClick={connectWallet}>Connect MetaMask</button>
         </div>
       ) : (
-        <div style={{ textAlign: "center", marginBottom: "20px" }} className="success">
-          Admin Wallet Connected: {account.slice(0,6)}...{account.slice(-4)}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div className="success" style={{ marginBottom: "10px" }}>
+            Admin Wallet Connected: {account.slice(0,6)}...{account.slice(-4)}
+          </div>
+          <div style={{ background: "rgba(231, 76, 60, 0.1)", color: "var(--danger)", padding: "10px", borderRadius: "8px", border: "1px solid var(--danger)", fontSize: "14px" }}>
+            ⚠️ <strong>CRITICAL:</strong> Your MetaMask wallet MUST be the exact same wallet that deployed the Smart Contract, or the blockchain will reject your candidate!
+          </div>
         </div>
       )}
 
