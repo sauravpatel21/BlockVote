@@ -40,6 +40,8 @@ function Login() {
                 placeholder="e.g. ABC1234567" 
                 value={voterId}
                 maxLength={10}
+                pattern="[A-Z]{3}[0-9]{7}"
+                title="Must be exactly 3 uppercase letters followed by 7 digits (e.g., ABC1234567)"
                 onChange={e => setVoterId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))}
                 required
               />
