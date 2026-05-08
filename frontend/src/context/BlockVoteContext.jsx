@@ -24,6 +24,7 @@ export function BlockVoteProvider({ children }) {
   const [account, setAccount] = useState("");
   const [candidates, setCandidates] = useState([]);
   const [status, setStatus] = useState("");
+  const [hasVoted, setHasVoted] = useState(false);
 
   const api = useMemo(() => axios.create({ baseURL: API_URL }), []);
   api.interceptors.request.use((config) => {
@@ -77,15 +78,31 @@ export function BlockVoteProvider({ children }) {
     return new Contract(CONTRACT_ADDRESS, VotingABI, provider);
   };
 
+  const checkVotedStatus = useCallback(async (walletAddress) => {
+    if (!walletAddress || !CONTRACT_ADDRESS) return;
+    try {
+      const contract = await getVotingContract(false);
+      const voted = await contract.checkVoted(walletAddress);
+      setHasVoted(voted);
+    } catch (e) {
+      console.warn("Failed to check voted status", e);
+    }
+  }, []);
+
   const connectWallet = async () => {
     try {
       await ensurePolygonAmoyNetwork();
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
+      checkVotedStatus(accounts[0]);
     } catch (error) {
       setStatus(error.message);
     }
   };
+
+  useEffect(() => {
+    if (account) checkVotedStatus(account);
+  }, [account, checkVotedStatus]);
 
   const loadCandidates = useCallback(async () => {
     if (!window.ethereum || !CONTRACT_ADDRESS) return;
@@ -120,6 +137,7 @@ export function BlockVoteProvider({ children }) {
       setStatus(`Transaction sent! Hash: ${tx.hash}`);
       await tx.wait();
       setStatus("Vote cast successfully!");
+      setHasVoted(true);
       loadCandidates();
     } catch (error) {
       console.error(error);
@@ -180,7 +198,7 @@ export function BlockVoteProvider({ children }) {
 
   return (
     <BlockVoteContext.Provider value={{
-      auth, status, setStatus, account, connectWallet, candidates, loadCandidates, onVote, requestOtp, verifyOtp, addCandidate, logout
+      auth, status, setStatus, account, connectWallet, candidates, loadCandidates, onVote, requestOtp, verifyOtp, addCandidate, logout, hasVoted
     }}>
       {children}
     </BlockVoteContext.Provider>
