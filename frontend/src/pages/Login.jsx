@@ -72,7 +72,10 @@ function Login() {
                 className="input" 
                 placeholder="123456" 
                 value={otp}
-                onChange={e => setOtp(e.target.value)}
+                maxLength={6}
+                pattern="[0-9]{6}"
+                title="Must be exactly 6 digits"
+                onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                 required
               />
             </div>
