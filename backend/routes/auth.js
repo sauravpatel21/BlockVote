@@ -20,7 +20,7 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 // Route: Request OTP for Signup / Login
 router.post("/otp/request", async (req, res) => {
   const { voterId, email, purpose } = req.body;
-  
+
   if (!voterId || !email) {
     return res.status(400).json({ message: "VoterID and Email are required." });
   }
@@ -32,7 +32,7 @@ router.post("/otp/request", async (req, res) => {
 
   try {
     const userExists = await User.findOne({ $or: [{ voterId }, { email }] });
-    
+
     if (purpose === "signup" && userExists) {
       return res.status(400).json({ message: "User with this Voter ID or Email already exists." });
     }
@@ -46,7 +46,7 @@ router.post("/otp/request", async (req, res) => {
     }
 
     const otp = generateOTP();
-    
+
     // Save/Update OTP Challenge
     await OtpChallenge.findOneAndUpdate(
       { email },

@@ -39,7 +39,11 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/blockvote
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch(err => console.error("MongoDB connection error:", err));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Backend server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
