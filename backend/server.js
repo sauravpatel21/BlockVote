@@ -34,6 +34,11 @@ const ipfsRoutes = require("./routes/ipfs");
 app.use("/api/auth", authRoutes);
 app.use("/api/ipfs", ipfsRoutes);
 
+// Root Health Check Route
+app.get("/", (req, res) => {
+  res.json({ message: "BlockVote Vercel Backend is Live!" });
+});
+
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/blockvote")
   .then(() => console.log("Connected to MongoDB Atlas"))
