@@ -55,6 +55,7 @@ router.post("/otp/request", async (req, res) => {
     );
 
     // Send Email
+    console.log(`[DEBUG] Generated OTP for ${email}: ${otp}`); // Prints to Vercel Logs for instant access
     await transporter.sendMail({
       from: `"BlockVote" <${process.env.SMTP_USER}>`,
       to: email,
