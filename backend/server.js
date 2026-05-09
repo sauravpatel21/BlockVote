@@ -31,6 +31,23 @@ app.use(session({
 const authRoutes = require("./routes/auth");
 const ipfsRoutes = require("./routes/ipfs");
 
+// Serverless Database Connection Middleware
+const connectDB = async (req, res, next) => {
+  if (mongoose.connection.readyState >= 1) {
+    return next();
+  }
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/blockvote");
+    console.log("Connected to MongoDB Atlas");
+    next();
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    res.status(500).json({ message: "Database connection failed" });
+  }
+};
+
+app.use(connectDB);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/ipfs", ipfsRoutes);
 
@@ -38,11 +55,6 @@ app.use("/api/ipfs", ipfsRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "BlockVote Vercel Backend is Live!" });
 });
-
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/blockvote")
-  .then(() => console.log("Connected to MongoDB Atlas"))
-  .catch(err => console.error("MongoDB connection error:", err));
 
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
