@@ -79,6 +79,7 @@ a{color:inherit}
   padding:10px 12px;border-radius:999px;
   border:1px solid var(--border);
   background:var(--card2);
+  color:var(--text);
   text-decoration:none;font-weight:800;font-size:13px;
   transition:transform .15s ease,border-color .15s ease;
 }
