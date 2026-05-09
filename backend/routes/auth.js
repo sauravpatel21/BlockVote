@@ -51,7 +51,7 @@ router.post("/otp/request", async (req, res) => {
     await OtpChallenge.findOneAndUpdate(
       { email },
       { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     // Send Email
