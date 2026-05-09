@@ -110,14 +110,24 @@ export function BlockVoteProvider({ children }) {
       await ensurePolygonAmoyNetwork();
       const contract = await getVotingContract(false);
       const count = await contract.candidateCount();
+      
+      // Fetch deleted candidates list from backend
+      let deletedIds = [];
+      try {
+        const delRes = await api.get("/ipfs/deleted");
+        deletedIds = delRes.data || [];
+      } catch (e) { console.warn("Failed to fetch deleted candidates"); }
+
       const rows = [];
       for (let i = 1; i <= Number(count); i++) {
+        if (deletedIds.includes(i)) continue; // Skip deleted candidates
+        
         const ipfsHash = await contract.getCandidate(i);
         const votes = await contract.getVotes(i);
-        let meta = { name: "Unknown", party: "", image: "" };
+        let meta = { name: "Unknown", party: "", age: "", photo: "", logo: "" };
         try {
           const res = await axios.get(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
-          meta = res.data;
+          meta = { ...meta, ...res.data };
         } catch (e) { console.warn("IPFS load failed", e); }
         rows.push({ id: i, ipfsHash, votes: Number(votes), ...meta });
       }
@@ -216,6 +226,20 @@ export function BlockVoteProvider({ children }) {
     }
   };
 
+  const deleteCandidate = async (candidateId) => {
+    if (!auth.user || auth.user.role !== "admin") return false;
+    try {
+      setStatus("Deleting candidate...");
+      await api.post("/ipfs/delete", { email: auth.user.email, candidateId });
+      setStatus("Candidate deleted successfully!");
+      loadCandidates();
+      return true;
+    } catch (error) {
+      setStatus(error.response?.data?.message || error.message);
+      return false;
+    }
+  };
+
   const logout = () => {
     setAuth({ token: null, user: null });
     localStorage.removeItem("blockvote_token");
@@ -225,7 +249,7 @@ export function BlockVoteProvider({ children }) {
 
   return (
     <BlockVoteContext.Provider value={{
-      auth, status, setStatus, account, connectWallet, candidates, loadCandidates, onVote, requestOtp, verifyOtp, requestAdminOtp, verifyAdminOtp, addCandidate, logout, hasVoted
+      auth, status, setStatus, account, connectWallet, candidates, loadCandidates, onVote, requestOtp, verifyOtp, requestAdminOtp, verifyAdminOtp, addCandidate, deleteCandidate, logout, hasVoted
     }}>
       {children}
     </BlockVoteContext.Provider>
