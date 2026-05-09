@@ -1,59 +1,71 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useBlockVote } from "../context/BlockVoteContext";
 
 function AdminLogin() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1);
+  const { requestAdminOtp, verifyAdminOtp, status } = useBlockVote();
   const navigate = useNavigate();
-  const { setStatus } = useBlockVote();
 
-  const handleLogin = async (e) => {
+  const handleRequest = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/admin/login`, { email, password });
-      localStorage.setItem("blockvote_token", res.data.token);
-      localStorage.setItem("blockvote_user", JSON.stringify(res.data.user));
-      // Refresh to update context
-      window.location.href = "/admin";
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    }
+    const success = await requestAdminOtp(email);
+    if (success) setStep(2);
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    const success = await verifyAdminOtp(email, otp);
+    if (success) window.location.href = "/admin"; // Force reload to apply admin context
   };
 
   return (
     <div className="admin-container" style={{ marginTop: '20px' }}>
       <h2 className="vote-title" style={{ color: "var(--danger)" }}>Admin Portal</h2>
-      {error && <p style={{ color: "var(--danger)", textAlign: "center" }}>{error}</p>}
-      <form className="form" onSubmit={handleLogin}>
-        <div className="field">
-          <label className="label">Admin Email</label>
-          <div className="control">
-            <input 
-              type="email" 
-              className="input" 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+      <p style={{ textAlign: "center", marginBottom: "20px" }} className="muted">
+        {status}
+      </p>
+
+      {step === 1 ? (
+        <form className="form" onSubmit={handleRequest}>
+          <div className="field">
+            <label className="label">Admin Email Address</label>
+            <div className="control">
+              <input 
+                type="email" 
+                className="input" 
+                placeholder="admin@example.com" 
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
-        </div>
-        <div className="field">
-          <label className="label">Password</label>
-          <div className="control">
-            <input 
-              type="password" 
-              className="input" 
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
+          <button type="submit" className="btn danger" style={{ width: "100%", marginTop: "10px" }}>Request Admin Access</button>
+        </form>
+      ) : (
+        <form className="form" onSubmit={handleVerify}>
+          <div className="field">
+            <label className="label">Enter 6-digit Admin OTP sent to {email}</label>
+            <div className="control">
+              <input 
+                type="text" 
+                className="input" 
+                placeholder="123456" 
+                value={otp}
+                maxLength={6}
+                pattern="[0-9]{6}"
+                title="Must be exactly 6 digits"
+                onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                required
+              />
+            </div>
           </div>
-        </div>
-        <button type="submit" className="btn danger" style={{ width: "100%", marginTop: "10px" }}>Admin Login</button>
-      </form>
+          <button type="submit" className="btn danger" style={{ width: "100%", marginTop: "10px" }}>Verify & Login</button>
+        </form>
+      )}
     </div>
   );
 }

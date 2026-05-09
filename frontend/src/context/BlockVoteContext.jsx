@@ -172,6 +172,33 @@ export function BlockVoteProvider({ children }) {
     }
   };
 
+  const requestAdminOtp = async (email) => {
+    try {
+      setStatus("Sending Admin OTP...");
+      await api.post("/auth/admin/otp/request", { email });
+      setStatus("Admin OTP sent to your email!");
+      return true;
+    } catch (error) {
+      setStatus(error.response?.data?.message || error.message);
+      return false;
+    }
+  };
+
+  const verifyAdminOtp = async (email, otp) => {
+    try {
+      setStatus("Verifying Admin OTP...");
+      const { data } = await api.post("/auth/admin/verify", { email, otp });
+      setAuth({ token: data.token, user: data.user });
+      localStorage.setItem("blockvote_token", data.token);
+      localStorage.setItem("blockvote_user", JSON.stringify(data.user));
+      setStatus("Admin access granted!");
+      return true;
+    } catch (error) {
+      setStatus(error.response?.data?.message || error.message);
+      return false;
+    }
+  };
+
   const addCandidate = async (metadata) => {
     try {
       setStatus("Uploading metadata to IPFS...");
@@ -198,7 +225,7 @@ export function BlockVoteProvider({ children }) {
 
   return (
     <BlockVoteContext.Provider value={{
-      auth, status, setStatus, account, connectWallet, candidates, loadCandidates, onVote, requestOtp, verifyOtp, addCandidate, logout, hasVoted
+      auth, status, setStatus, account, connectWallet, candidates, loadCandidates, onVote, requestOtp, verifyOtp, requestAdminOtp, verifyAdminOtp, addCandidate, logout, hasVoted
     }}>
       {children}
     </BlockVoteContext.Provider>

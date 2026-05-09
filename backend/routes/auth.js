@@ -117,24 +117,75 @@ router.post("/verify", async (req, res) => {
   }
 });
 
-// Admin Login
-router.post("/admin/login", async (req, res) => {
-  const { email, password } = req.body;
-  // In a real app, hash password and store in DB. 
-  // For this overhaul, we will hardcode or use simple check for demonstration if not specified.
-  if (email === "admin@blockvote.com" && password === "admin123") {
+// Route: Request OTP for Admin
+router.post("/admin/otp/request", async (req, res) => {
+  const { email } = req.body;
+  
+  const adminEmail = process.env.ADMIN_EMAIL;
+  
+  if (!adminEmail) {
+    return res.status(500).json({ message: "ADMIN_EMAIL is not configured on the server." });
+  }
+
+  if (email !== adminEmail) {
+    return res.status(401).json({ message: "Unauthorized admin email address." });
+  }
+
+  try {
+    const otp = generateOTP();
+
+    await OtpChallenge.findOneAndUpdate(
+      { email },
+      { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
+      { upsert: true, returnDocument: 'after' }
+    );
+
+    console.log(`[DEBUG] Generated ADMIN OTP for ${email}: ${otp}`);
+    await transporter.sendMail({
+      from: `"BlockVote Security" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: "BlockVote Admin Portal Access Code",
+      text: `Your Admin access OTP is ${otp}. Do not share this code. It is valid for 10 minutes.`
+    });
+
+    res.json({ message: "Admin OTP sent successfully." });
+  } catch (error) {
+    console.error("Admin OTP Request Error:", error);
+    res.status(500).json({ message: "Failed to process Admin OTP request." });
+  }
+});
+
+// Route: Verify OTP for Admin
+router.post("/admin/verify", async (req, res) => {
+  const { email, otp } = req.body;
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  if (email !== adminEmail) {
+    return res.status(401).json({ message: "Unauthorized." });
+  }
+
+  try {
+    const challenge = await OtpChallenge.findOne({ email, otp });
+    if (!challenge) {
+      return res.status(400).json({ message: "Invalid or expired Admin OTP." });
+    }
+
+    await OtpChallenge.deleteOne({ email });
+
     const token = jwt.sign(
       { role: "admin" },
       process.env.JWT_SECRET || "fallback_secret",
       { expiresIn: "1d" }
     );
+
     res.json({
-      message: "Admin logged in",
+      message: "Admin authenticated successfully.",
       token,
       user: { role: "admin" }
     });
-  } else {
-    res.status(401).json({ message: "Invalid admin credentials" });
+  } catch (error) {
+    console.error("Admin OTP Verify Error:", error);
+    res.status(500).json({ message: "Failed to verify Admin OTP." });
   }
 });
 
